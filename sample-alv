@@ -1,0 +1,162 @@
+*&---------------------------------------------------------------------*
+*& Report  ZLINCSD_I0019
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  zlincsd_i0019.
+TABLES: zlincsd_tb0055.
+DATA: lt_zlincsd_tb0055 TYPE TABLE OF zlincsd_tb0055 WITH HEADER LINE,
+      lt_output TYPE TABLE OF zlincsd_tb0055 WITH HEADER LINE.
+
+TYPE-POOLS : slis.
+DATA:
+      lt_fcat            TYPE lvc_t_fcat,            "Field catalogue
+      lt_layout          TYPE lvc_s_layo.           "Layout
+SELECTION-SCREEN: BEGIN OF BLOCK b1.
+SELECT-OPTIONS: so_nopi FOR  zlincsd_tb0055-nopi,
+                so_kunnr FOR  zlincsd_tb0055-sapstorercode.
+SELECTION-SCREEN: END OF BLOCK b1.
+
+START-OF-SELECTION.
+
+  PERFORM get_data.
+  PERFORM alv_build_fieldcat.
+  PERFORM alv_report_layout.
+  PERFORM alv_grid_display.
+
+*&---------------------------------------------------------------------*
+*&      Form  get_data
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+FORM get_data.
+
+ENDFORM.                    "get_data
+*&---------------------------------------------------------------------*
+*&      Form  f03_my_status
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*      -->RT_EXTAB   text
+*----------------------------------------------------------------------*
+FORM f03_my_status USING rt_extab TYPE slis_t_extab.
+  SET PF-STATUS 'STANDARD'.
+ENDFORM.                    "f03_my_status
+*&---------------------------------------------------------------------*
+*&      Form  u_comm
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*      -->P_UCOMM      text
+*      -->PS_SELFIELD  text
+*----------------------------------------------------------------------*
+FORM u_comm USING p_ucomm LIKE sy-ucomm
+        ps_selfield TYPE slis_selfield .
+  DATA ref1 TYPE REF TO cl_gui_alv_grid.
+  CALL FUNCTION 'GET_GLOBALS_FROM_SLVC_FULLSCR'
+    IMPORTING
+      e_grid = ref1.
+  CALL METHOD ref1->check_changed_data.
+  CASE p_ucomm.
+    WHEN '&IC1'.
+
+
+
+  ENDCASE.
+  ps_selfield-refresh = abap_true.
+ENDFORM.                    "u_comm
+*&---------------------------------------------------------------------*
+*&      Form  alv_grid_display
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+FORM alv_grid_display.
+  lt_layout-cwidth_opt  = 'X'.
+  lt_layout-zebra       = 'X'.
+  lt_layout-sel_mode    = 'A'.
+  lt_layout-zebra       = 'X'.
+  CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY_LVC'
+   EXPORTING
+*     I_INTERFACE_CHECK                 = ' '
+*     I_BYPASSING_BUFFER                =
+*     I_BUFFER_ACTIVE                   =
+     i_callback_program                = sy-repid
+     i_callback_pf_status_set          = 'F03_MY_STATUS'
+     i_callback_user_command           = 'U_COMM'
+*     I_CALLBACK_TOP_OF_PAGE            = ' '
+*     I_CALLBACK_HTML_TOP_OF_PAGE       = ' '
+*     I_CALLBACK_HTML_END_OF_LIST       = ' '
+*     I_STRUCTURE_NAME                  =
+*     I_BACKGROUND_ID                   = ' '
+*     I_GRID_TITLE                      =
+*     I_GRID_SETTINGS                   =
+     is_layout_lvc                     = lt_layout
+     it_fieldcat_lvc                   = lt_fcat
+*     IT_EXCLUDING                      =
+*     IT_SPECIAL_GROUPS_LVC             =
+*     IT_SORT_LVC                       =
+*     IT_FILTER_LVC                     =
+*     IT_HYPERLINK                      =
+*     IS_SEL_HIDE                       =
+*     I_DEFAULT                         = 'X'
+     i_save                            = 'X'
+*     IS_VARIANT                        = ''
+*     IT_EVENTS                         =
+*     IT_EVENT_EXIT                     =
+*     IS_PRINT_LVC                      =
+*     IS_REPREP_ID_LVC                  =
+*     I_SCREEN_START_COLUMN             = 0
+*     I_SCREEN_START_LINE               = 0
+*     I_SCREEN_END_COLUMN               = 0
+*     I_SCREEN_END_LINE                 = 0
+*     I_HTML_HEIGHT_TOP                 =
+*     I_HTML_HEIGHT_END                 =
+*     IT_ALV_GRAPHICS                   =
+*     IT_EXCEPT_QINFO_LVC               =
+*     IR_SALV_FULLSCREEN_ADAPTER        =
+*   IMPORTING
+*     E_EXIT_CAUSED_BY_CALLER           =
+*     ES_EXIT_CAUSED_BY_USER            =
+    TABLES
+      t_outtab                          = lt_output
+*   EXCEPTIONS
+*     PROGRAM_ERROR                     = 1
+*     OTHERS                            = 2
+            .
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+ENDFORM.                    "alv_grid_display
+
+*&---------------------------------------------------------------------*
+*&      Form  alv_build_fieldcat
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+FORM alv_build_fieldcat.
+
+  DATA lv_fldcat TYPE lvc_s_fcat.
+  CLEAR lv_fldcat.
+
+  lv_fldcat-fieldname = 'INFTY'.
+  lv_fldcat-tabname   = 'IT_OUTPUT'.
+  lv_fldcat-scrtext_m = 'Infotype'.
+  lv_fldcat-just   = 'L'.
+  APPEND lv_fldcat TO lt_fcat.
+  CLEAR lv_fldcat.
+
+ENDFORM.                    "alv_build_fieldcat
+
+*&---------------------------------------------------------------------*
+*&      Form  alv_report_layout
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+FORM alv_report_layout.
+  lt_layout-cwidth_opt = 'X'.
+  lt_layout-zebra = 'X'.
+  lt_layout-col_opt = 'X'.
+ENDFORM.                    "alv_report_layout
